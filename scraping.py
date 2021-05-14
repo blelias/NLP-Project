@@ -19,7 +19,7 @@ def get_dict(soup):
 
     title = soup.find("h1", class_="SongHeader__Title-sc-1b7aqpg-7 eJWiuG").get_text()
     album = soup.find("div", class_="HeaderTracklist__Album-sc-1qmk74v-3 hxXYDz").get_text()
-    lyrics = soup.find("div", class_="Lyrics__Container-sc-1ynbvzw-6 krDVEH") # Get the whole lyrics section
+    lyrics = soup.find("div", class_="SongPageGrid-sc-1vi6xda-0 DGVcp Lyrics__Root-sc-1ynbvzw-0 kkHBOZ")
     lyrics_str = str(lyrics.get_text(separator="<br/>")).strip() # Get text from lyrics section, keep line break
     lyrics_list = re.split("(\[.*?])", lyrics_str) # Split the section based on bracketss
 
@@ -39,21 +39,22 @@ def get_dict(soup):
     for type, text in zip(types, texts): # Put type and text into dict
         song_dict[type[0]] = text
 
+    #print(types)
+    #print(song_dict)
+    #print(len(song_dict))
+    print(song_dict.keys())
     i = 0
-
-    print(song_dict)
-    print(len)
     while i < len(song_dict): # Creating the right format for names in dict
-        print(types)
-        new_key = str(re.findall("\[.*\d", types[i][0])[0] + "]") # Text up until number
+        new_key = str(re.findall("\[.*?]", types[i][0])[0]) # Text in first bracket
+        #print(types[i])
+        #print(i)
         old_key = str(types[i][0])
         try:
             song_dict[new_key] = song_dict[old_key]
             del song_dict[old_key]
+        finally:
             i += 1
-        except:
-            i += 1
-    
+    #print(song_dict.keys())
     for key in song_dict: # Removing the brackets around the text
         song_dict[key] = song_dict[key][0]
     
@@ -65,10 +66,11 @@ song_list = []
 get_dict(soup)
 #song_list
 # %%
-
-
-
-
+print(song_list[0].keys())
+print(song_list)
+# %%
+song_list = []
+url = "https://genius.com/The-beatles-help-lyrics"
 req = requests.get(url) # Load the webpage
 soup = BeautifulSoup(req.content, 'html.parser')
 # %%
