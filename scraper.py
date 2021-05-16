@@ -47,7 +47,7 @@ def load_url(n_songs): # Call get_song function
         song_title = standard_title(song_title)       
         url_list.append(create_url(song_title))
     #print(url_list)
-    for i in range(20): # Choose number of iterations
+    for i in range(30): # Choose number of iterations
         for url in url_list:
             # If the title from the URL does not exisit in song_list, continue
             if not any(standard_title(d['title']) == standard_title(re.findall(r"beatles-(.*)-lyrics", url)[0]) for d in song_list):
@@ -72,7 +72,7 @@ def standard_title(title):
     title = title.replace("’", "")
     title = title.replace("(", "")
     title = title.replace(")", "")
-    return title
+    return title    
 def create_url(title):
     url = "https://genius.com/The-beatles-" + standard_title(title) + "-lyrics"
     return url
@@ -88,3 +88,4 @@ def to_csv(song_list):
 # %%
 len(song_list)
 # %%
+
