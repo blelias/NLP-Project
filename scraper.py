@@ -21,9 +21,9 @@ def get_song(soup, title):
             print(title)
             album = soup.find("div", class_=re.compile(r'_Album-.*?"'[0:-1])).get_text()
             lyrics = soup.find("div", class_=re.compile(r'"Lyrics__Container.*?"'[1:-1])).get_text(separator="<br/>") # .*?Lyrics__Container.*?
-            print("success")
+            print("Success")
         except:
-            print("error")
+            print("Error")
             return
         # Split text based on bracket location
         split_text = re.split(r"\[.*?]", lyrics)
@@ -43,35 +43,55 @@ def get_song(soup, title):
         song_dict["album"] = album
         song_list.append(song_dict)
     else:
-        print("already there")
+        print("Already there")
 # %%
 def load_url(n_songs): # Call get_song function
     url_list = []
     for i in range(n_songs): # Choose number of songs in URL-list
         song_title = df_features.iloc[i][0]
         song_title = standard_title(song_title)       
-        url_list.append("https://genius.com/The-beatles-" + song_title + "-lyrics")
-    
-    print(url_list)
-    for i in range(10): # Choose number of iterations
+        url_list.append(create_url(song_title))
+    #print(url_list)
+    for i in range(20): # Choose number of iterations
         for url in url_list:
-            req = requests.get(url) # Load the webpage
-            soup = BeautifulSoup(req.content, 'html.parser')
-            print(req.status_code)
-            title = soup.find("h1").text.strip()
-            if not any(standard_title(d['title']) == title for d in song_list):
+            if not any(standard_title(d['title']) == standard_title(re.findall(r"beatles-(.*)-lyrics", url)[0]) for d in song_list):
+                req = requests.get(url) # Load the webpage
+                soup = BeautifulSoup(req.content, 'html.parser')
+                print(req.status_code)
+                title = soup.find("h1").text.strip()
                 get_song(soup, title)
             else:  
-                print("removed " + title)
-                url_list.remove("https://genius.com/The-beatles-" + standard_title(title) + "-lyrics")
-    print(url_list)
+                try:
+                    url_list.remove(url) # url_list.remove(create_url(title))
+                    print("Removed " + url)
+                    break
+                except:
+                    print("Already removed")
+        #print(url_list)
 # %%
 def standard_title(title):
     title = title.replace(' ', '-')
     title = title.replace("'", '')
     title = title.replace("’", "")
     return title
+def create_url(title):
+    url = "https://genius.com/The-beatles-" + standard_title(title) + "-lyrics"
+    return url
 # %%
 song_list = []
 load_url(3) # Choose number of songs
+# %%
+len(song_list)
+# %%
+any(standard_title(d['title']) == standard_title(re.findall(r"beatles-(.*)-lyrics", url)[0]) for d in song_list)
+# %%
+url_list = ['https://genius.com/The-beatles-12-Bar-Original-lyrics', 'https://genius.com/The-beatles-A-Day-in-the-Life-lyrics', 'https://genius.com/The-beatles-A-Hard-Days-Night-lyrics']
+# %%
+url = url_list[0]
+# %%
+song_list
+# %%
+re.findall(r"beatles-(.*)-lyrics", url)[0]
+# %%
+len(song_list)
 # %%
