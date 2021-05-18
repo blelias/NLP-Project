@@ -5,6 +5,7 @@ import requests
 import re
 import numpy as np
 import time
+import os
 # %%
 
 def request_artist_info(artist_name, page):
@@ -107,27 +108,36 @@ len(urls)
 # %%
 new_df = pd.read_csv("deepnote_dataset.csv")
 # %%
-for idx, lyrics in enumerate(new_df["lyrics"]):
-    lyrics = lyrics.split('\n\n',15)
-    lst1 = []
-    lst2 = []
-    lst3 = []
-    lst4 = []
-    for i in range(len(lyrics)):
-        if '[Intro]' in lyrics[i]:
-            lst1.append(lyrics[i])
-        elif '[Verse' in lyrics[i]:
-            lst2.append(lyrics[i])
-        elif '[Chorus]' in lyrics[i]:
-            lst3.append(lyrics[i])
-        elif '[Outro]' in lyrics[i]:
-            lst4.append(lyrics[i])
-    
-    new_df.loc["intro"][idx] = lst1
+def make_df(urls):
+    df = pd.DataFrame()
+    for i, url in enumerate(urls):
+        title,date,album,lyrics,lst1,lst2,lst3,lst4 = retrive_info(url)
+        df.loc[i,'title'] = title
+        df.loc[i,'date'] = date
+        df.loc[i,'album'] = album
+        df.loc[i,'lyrics'] = lyrics
+        df.loc[i,'intro'] = lst1
+        df.loc[i,'verse'] = lst2
+        df.loc[i,'chorus'] = lst3
+        df.loc[i,'outro'] = lst4
+        print(url)
+    return df
+
+make_df(urls[0:5])
 # %%
-new_df.head()
-# %%
-new_df["intro"] = "hei"
-# %%
-new_df = new_df.drop(columns=["intro"])
-# %%
+def clean(s):
+
+    # Format words and remove unwanted characters
+    s = re.sub(r'[\(\[].*?[\)\]]', '', s)
+    s = os.linesep.join([i for i in s.splitlines() if i])
+    s = s.replace("\\n", " ")
+    s = re.sub(r"[^'.,a-zA-Z0-9 \.-]+", '', s)
+    s = re.sub(r"\s'\s", " ", s)
+    s = s.lower()
+    return s
+
+df['intro_cleaned'] = list(map(clean, df.intro))
+df['verse_cleaned'] = list(map(clean, df.verse))
+df['bridge_cleaned'] = list(map(clean, df.bridge))
+df['chorus_cleaned'] = list(map(clean, df.chorus))
+df['outro_cleaned'] = list(map(clean, df.outro))
