@@ -87,5 +87,3 @@ def to_csv(song_list):
     df.to_csv("lyrics_dataset.csv")
 # %%
 len(song_list)
-# %%
-

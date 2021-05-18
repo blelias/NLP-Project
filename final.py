@@ -1,11 +1,9 @@
-# %%
 from bs4 import BeautifulSoup
 import pandas as pd
 import requests
 import re
 import numpy as np
 import time
-# %%
 
 def request_artist_info(artist_name, page):
     base_url = 'https://api.genius.com'
@@ -39,9 +37,8 @@ def request_song_url(artist_name, song_cap):
             page += 1
     return songs
 
-urls = request_song_url('The Beatles', 311)
+urls = request_song_url('The Beatles', 300)
 
-# %%
 def retrive_info(url):
     lyrics = None
     timeout = time.time() + 15 #15 seconds
@@ -100,34 +97,5 @@ def make_df(urls):
         print(url)
     return df
 
-df = make_df(urls)
-# %%
-df.to_csv("deepnote_dataset.csv")
-len(urls)
-# %%
-new_df = pd.read_csv("deepnote_dataset.csv")
-# %%
-for idx, lyrics in enumerate(new_df["lyrics"]):
-    lyrics = lyrics.split('\n\n',15)
-    lst1 = []
-    lst2 = []
-    lst3 = []
-    lst4 = []
-    for i in range(len(lyrics)):
-        if '[Intro]' in lyrics[i]:
-            lst1.append(lyrics[i])
-        elif '[Verse' in lyrics[i]:
-            lst2.append(lyrics[i])
-        elif '[Chorus]' in lyrics[i]:
-            lst3.append(lyrics[i])
-        elif '[Outro]' in lyrics[i]:
-            lst4.append(lyrics[i])
-    
-    new_df.loc["intro"][idx] = lst1
-# %%
-new_df.head()
-# %%
-new_df["intro"] = "hei"
-# %%
-new_df = new_df.drop(columns=["intro"])
-# %%
+df = make_df(urls])
+df.to_csv("deepnot_dataset.csv")
