@@ -147,3 +147,30 @@ df['outro_cleaned'] = list(map(clean, df.outro))
 # %%
 df.to_csv("cleaned_dataset.csv")
 # %%
+df = pd.read_csv("cleaned_dataset.csv")
+# %%
+def alt_clean(s):
+
+    # Format words and remove unwanted characters
+    s = re.sub(r'[\(\[].*?[\)\]]', '', s)
+    s = os.linesep.join([i for i in s.splitlines() if i])
+    s = s.replace("\\n", ". ") # Changed from space to period w/ space 
+    s = re.sub("^\.", "", s) # Added this - Removes the period at the start of each string
+    s = re.sub("'\.\s", "", s) # Added this - Remove space and period after apostrophe + period + space
+    s = re.sub('^\s', "", s) # Added this - Remove space at start of string
+    s = re.sub("$", ".", s) # Added this - Add period at end of sentence
+    s = re.sub("',", ".", s) # Added this - Exchange apostrophe + comma with period
+    # Good
+    s = re.sub(r"\.\s\.", ".", s) # Added this - Exchange comma + space + period with period
+    s = re.sub(r"[^'.,a-zA-Z0-9 \.-]+", '', s)
+    s = re.sub(r"\s'\s", " ", s)
+    s = s.lower()
+    return s
+
+# %%
+df['verse_cleaned_2'] = list(map(alt_clean, df.verse))
+# %%
+df["verse_cleaned_2"][3]
+# %%
+df.to_csv("cleaned_dataset_2.csv")
+# %%
