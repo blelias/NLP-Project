@@ -6,6 +6,7 @@ import re
 import numpy as np
 import time
 import os
+import string
 
 # %%
 def request_artist_info(artist_name, page):
@@ -129,7 +130,6 @@ df.to_csv("dataset.csv")
 df = pd.read_csv("dataset.csv")
 # %%
 def clean(s):
-
     # Format words and remove unwanted characters
     s = re.sub(r'[\(\[].*?[\)\]]', '', s)
     s = os.linesep.join([i for i in s.splitlines() if i])
@@ -149,28 +149,24 @@ df.to_csv("cleaned_dataset.csv")
 # %%
 df = pd.read_csv("cleaned_dataset.csv")
 # %%
-def alt_clean(s):
-
-    # Format words and remove unwanted characters
-    s = re.sub(r'[\(\[].*?[\)\]]', '', s)
-    s = os.linesep.join([i for i in s.splitlines() if i])
-    s = s.replace("\\n", ". ") # Changed from space to period w/ space 
-    s = re.sub("^\.", "", s) # Added this - Removes the period at the start of each string
-    s = re.sub("'\.\s", "", s) # Added this - Remove space and period after apostrophe + period + space
-    s = re.sub('^\s', "", s) # Added this - Remove space at start of string
-    s = re.sub("$", ".", s) # Added this - Add period at end of sentence
-    s = re.sub("',", ".", s) # Added this - Exchange apostrophe + comma with period
-    # Good
-    s = re.sub(r"\.\s\.", ".", s) # Added this - Exchange comma + space + period with period
-    s = re.sub(r"[^'.,a-zA-Z0-9 \.-]+", '', s)
-    s = re.sub(r"\s'\s", " ", s)
-    s = s.lower()
+df.columns
+# %%
+df["lyrics"]
+# %%
+# Cleaning lyrics
+def clean_lyrics(s):
+    s = re.sub(r"\[.*?]", "", s)
+    s = re.sub(r"\n", ". ", s)
+    s = re.sub(r"[\.\s]{2,}", ". ", s)
+    s = re.sub(r"^\.", "", s)
+    s = re.sub(" \d+", "", s)
+    s = re.sub("[^a-zA-Z.,!?() ]", "", s)
+    s = s.strip()
     return s
-
 # %%
-df['verse_cleaned_2'] = list(map(alt_clean, df.verse))
+df['lyrics_cleaned'] = list(map(clean_lyrics, df.lyrics))
 # %%
-df["verse_cleaned_2"][3]
+df.to_csv("cleaned_dataset.csv")
 # %%
-df.to_csv("cleaned_dataset_2.csv")
+df.lyrics_cleaned
 # %%
