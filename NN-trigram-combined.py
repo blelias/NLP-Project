@@ -22,7 +22,7 @@ import nltk
 df = pd.read_csv("cleaned_dataset.csv")
 # %%
 def get_data(col):
-    return ".".join(list(df[col].dropna()))
+    return ".".join(list(df[col].dropna())) # dropna is probably unnecessary
 
 data_intro = get_data("intro_cleaned")
 data_verse = get_data("verse_cleaned")
@@ -30,6 +30,7 @@ data_bridge = get_data("bridge_cleaned")
 data_chorus = get_data("chorus_cleaned")
 data_outro = get_data("outro_cleaned")
 data_lyrics = get_data("lyrics_cleaned")
+data_title = get_data("title")
 # %%
 # Creating trigram model to generate closing word of each line
 text = [None, None]
@@ -45,21 +46,21 @@ for sentence in corpus_sents:
         model_sample[(w1, w2)][w3] += 1
 
 ending_words = model_sample[tuple(text[-2:])].keys()
-ending_words = [x for x in ending_words if not any(c.isdigit() for c in x)]
+#ending_words = [x for x in ending_words if not any(c.isdigit() for c in x)] # Removing numbers, but this is already done in the cleaning
 # %%
 # Creating unigram model for generating the two first words of each line
-tokenizer = RegexpTokenizer(r'\w+')
-text = data_lyrics
-tokens = tokenizer.tokenize(text)
-counts = Counter(tokens)
-total_count = len(tokens)
+def unigram_get_words(data, length):
+    tokenizer = RegexpTokenizer(r'\w+')
+    text = data
+    tokens = tokenizer.tokenize(text)
+    counts = Counter(tokens)
+    total_count = len(tokens)
 
-for word in counts:
-    counts[word] /= float(total_count)
+    for word in counts:
+        counts[word] /= float(total_count)
 
-def get_song_start():
     text = []
-    for i in range(2):
+    for i in range(length):
         r = random.random()
         accumulator = .0
         for word, freq in counts.items():
@@ -118,28 +119,35 @@ def get_sequence(model, tokenizer, max_length, seed_text, n_words):
                 else:
                     in_text += out_word
                 x += 1
+                # This should be tweaked to match how beatles typically structure their songs
                 if out_word.lower() in ending_words and len(in_text.split()) >= n_words/3 and x >= 5: # When the sentence is reaching its end from n_words, start looking for an ending word
                     # Potentially include line break instead for finishing lines
                     #return in_text
                     in_text += "\n"
                     x = 0
+                #elif x >= n_words/2:
+                elif x >= 7: # This cap can be adjusted based on longest/average line length
+                        in_text += "\n"
+                        x = 0
                 #break
     if in_text[-1] != "\n":
         in_text += "\n"
     return in_text
 # %%
 def create_song(format, specialized, i_len=5, b_len=5, c_len=10, v_len=20, o_len=5):
+    title = unigram_get_words(data_title, 4)
     song = []
+    song.append("SONG NAME: " + title.upper() + "\n")
     if specialized is True:
-        intro = "[INTRO]\n" + get_sequence(model_intro[0], model_intro[1], model_intro[2]-1, get_song_start(), i_len) # Parameters: model, tokenizer, max_length
-        bridge = "[BRIDGE]\n" + get_sequence(model_bridge[0], model_bridge[1], model_bridge[2]-1, get_song_start(), b_len)
-        chorus = "[CHORUS]\n" + get_sequence(model_chorus[0], model_chorus[1], model_chorus[2]-1, get_song_start(), c_len)
-        outro = "[OUTRO]\n" + get_sequence(model_outro[0], model_outro[1], model_outro[2]-1, get_song_start(), o_len)
+        intro = "[INTRO]\n" + get_sequence(model_intro[0], model_intro[1], model_intro[2]-1, unigram_get_words(data_lyrics, 2), i_len) # Parameters: model, tokenizer, max_length
+        bridge = "[BRIDGE]\n" + get_sequence(model_bridge[0], model_bridge[1], model_bridge[2]-1, unigram_get_words(data_lyrics, 2), b_len)
+        chorus = "[CHORUS]\n" + get_sequence(model_chorus[0], model_chorus[1], model_chorus[2]-1, unigram_get_words(data_lyrics, 2), c_len)
+        outro = "[OUTRO]\n" + get_sequence(model_outro[0], model_outro[1], model_outro[2]-1, unigram_get_words(data_lyrics, 2), o_len)
     else:
-        intro = "[INTRO]\n" + get_sequence(model_lyrics[0], model_lyrics[1], model_lyrics[2]-1, get_song_start(), i_len)
-        bridge = "[BRIDGE]\n" + get_sequence(model_lyrics[0], model_lyrics[1], model_lyrics[2]-1, get_song_start(), b_len)
-        chorus = "[CHORUS]\n" + get_sequence(model_lyrics[0], model_lyrics[1], model_lyrics[2]-1, get_song_start(), c_len)
-        outro = "[OUTRO]\n" + get_sequence(model_lyrics[0], model_lyrics[1], model_lyrics[2]-1, get_song_start(), o_len)
+        intro = "[INTRO]\n" + get_sequence(model_lyrics[0], model_lyrics[1], model_lyrics[2]-1, unigram_get_words(data_lyrics, 2), i_len)
+        bridge = "[BRIDGE]\n" + get_sequence(model_lyrics[0], model_lyrics[1], model_lyrics[2]-1, unigram_get_words(data_lyrics, 2), b_len)
+        chorus = "[CHORUS]\n" + get_sequence(model_lyrics[0], model_lyrics[1], model_lyrics[2]-1, unigram_get_words(data_lyrics, 2), c_len)
+        outro = "[OUTRO]\n" + get_sequence(model_lyrics[0], model_lyrics[1], model_lyrics[2]-1, unigram_get_words(data_lyrics, 2), o_len)
     for tag in format:
         if tag == "I":
             song.append(intro)
