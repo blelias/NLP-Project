@@ -172,6 +172,7 @@ def get_sequence(model, tokenizer, max_length, seed_text, n_words):
                     #return in_text
                     in_text += "\n"
                     x = 0
+                    print(len(in_text.split()))
                 #elif x >= n_words/2:
                 elif x >= 7: # This cap can be adjusted based on longest/average line length
                         in_text += "\n"
@@ -186,10 +187,11 @@ def create_song(format, specialized, i_len=5, b_len=5, c_len=10, v_len=20, o_len
     song = []
     song.append("SONG NAME: " + title.upper() + "\n")
     if specialized is True:
-        intro = "[INTRO]\n" + get_sequence(model_intro[0], model_intro[1], model_intro[2]-1, unigram_get_words(data_lyrics, 2), i_len) # Parameters: model, tokenizer, max_length
-        bridge = "[BRIDGE]\n" + get_sequence(model_bridge[0], model_bridge[1], model_bridge[2]-1, unigram_get_words(data_lyrics, 2), b_len)
-        chorus = "[CHORUS]\n" + get_sequence(model_chorus[0], model_chorus[1], model_chorus[2]-1, unigram_get_words(data_lyrics, 2), c_len)
-        outro = "[OUTRO]\n" + get_sequence(model_outro[0], model_outro[1], model_outro[2]-1, unigram_get_words(data_lyrics, 2), o_len)
+        #intro = "[INTRO]\n" + get_sequence(model_intro[0], model_intro[1], model_intro[2]-1, unigram_get_words(data_lyrics, 2), i_len) # Parameters: model, tokenizer, max_length
+        #bridge = "[BRIDGE]\n" + get_sequence(model_bridge[0], model_bridge[1], model_bridge[2]-1, unigram_get_words(data_lyrics, 2), b_len)
+        #chorus = "[CHORUS]\n" + get_sequence(model_chorus[0], model_chorus[1], model_chorus[2]-1, unigram_get_words(data_lyrics, 2), c_len)
+        #outro = "[OUTRO]\n" + get_sequence(model_outro[0], model_outro[1], model_outro[2]-1, unigram_get_words(data_lyrics, 2), o_len)
+        pass
     else:
         intro = "[INTRO]\n" + get_sequence(model_lyrics[0], model_lyrics[1], model_lyrics[2]-1, unigram_get_words(data_lyrics, 2), i_len)
         bridge = "[BRIDGE]\n" + get_sequence(model_lyrics[0], model_lyrics[1], model_lyrics[2]-1, unigram_get_words(data_lyrics, 2), b_len)
@@ -244,9 +246,9 @@ def print_song(song):
     for element in song:
         print(element)
 # %%
-song_specialized = create_song("ICBOV", specialized=True, c_len=15)
-song_general = create_song("ICBOV", specialized=False, c_len=15)
+song_specialized = create_song("V", specialized=True, c_len=15)
+#song_general = create_song("ICBOV", specialized=False, c_len=15)
 # %%
-print_song(song_general)
+print_song(song_specialized)
 # %%
-# NEXT: Add grid search, look up ways to perfect the model, check typical beatles characteristics such as verse length, line length, etc, find a good random state
+# NEXT: Add grid search, look up ways to perfect the model, check typical beatles characteristics such as verse length, line length, etc.
