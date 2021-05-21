@@ -135,7 +135,7 @@ def create_model(data, tokenizer_len=False, n_epochs=200): # Function to create 
     # Creating the model
     model = Sequential() # A grouping of linear stacks into a keras model
     model.add(Embedding(v_size, 10, input_length=max_length-1))  # Adds a list of tensors.
-    model.add(LSTM(50)) # Long short term layer with 50 units
+    model.add(LSTM(50)) # Long-short term layer with 50 units
     model.add(Dense(v_size, activation='softmax')) # Regular densely connected NN layers with softmax
     model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy']) # Using catagorical_crossentropy since it's technically a multinomial classificaiton problem, with Adam optimizer which is an efficient implementation of gradient descent
     model.fit(X, y, epochs=n_epochs, verbose=2)
@@ -254,9 +254,10 @@ def print_song(song):
     for element in song:
         print(element)
 # %%
-song_specialized = create_song("IVCVC", specialized=True)
+song_specialized = create_song("IVCVCBO", specialized=True)
 #song_general = create_song("ICBOV", specialized=False, c_len=15)
 # %%
 print_song(song_specialized)
 # %%
 # NEXT: Add grid search, look up ways to perfect the model, check typical beatles characteristics such as verse length, line length, etc.
+# Can get error if two words similar in beginning
