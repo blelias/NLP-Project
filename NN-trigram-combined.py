@@ -87,14 +87,6 @@ avg_len = float(round(avg_len))
 print("Q1 quantile: " + str(q1), "\nQ3 quantile: " + str(q3) +
 "\nRounded average length: " + str(avg_len))
 # %%
-"""
-lengths.index(max(lengths))
-long_list = [x for x in sents_break if len(x.split(" ")) >= 50]
-len(sents_break[4].split(" "))
-length_list = [len(x.split(" ")) for x in sents_break]
-length_list.index(max(length_list))
-"""
-# %%
 # Creating unigram model for generating the two first words of each line
 def unigram_get_words(data, length):
     tokenizer = RegexpTokenizer(r'\w+')
@@ -152,7 +144,7 @@ def create_model(data, tokenizer_len=False, n_epochs=200): # Function to create 
 # Generate sequence
 def get_sequence(model, tokenizer, max_length, seed_text, n_words):
     in_text = seed_text
-    x = 0
+    x = 2 # Counter for words in each line, starts at two which is the input
     for i in range(n_words):
         encoded = tokenizer.texts_to_sequences([in_text])[0] # Transform words to integeres
         encoded = pad_sequences([encoded], maxlen=max_length, padding="pre") # Pads sequence to fixed length
@@ -161,36 +153,52 @@ def get_sequence(model, tokenizer, max_length, seed_text, n_words):
         for word, index in tokenizer.word_index.items():
             if index == yhat: # If the word index matches the probability
                 out_word = word
+
+                if out_word == in_text.split(" ")[-1] or bool(re.search("\n" + out_word, in_text.split(" ")[-1])) is True: # If one word has repeated itself, get new input # in_text.split(" ")[-1] == out_word or
+                    print(out_word + " repeated itself")
+                    print(in_text.split(" "))
+                    
+                    new_word = unigram_get_words(data_lyrics, 1) 
+                    while new_word == out_word: # If the new word is the same as the one to be replaced, pick a different word
+                        new_word = unigram_get_words(data_lyrics, 1)
+                        #print("SAME AGAIN", new_word)
+                    out_word = new_word
+                    #print("HERE IT IS", new_word)
+                    #print("with: " + out_word) # Next this doesnt match right away, and make it better for two or three words!
+                    # Make it match for sentences as well
+
                 if in_text[-1] != "\n":
                     in_text += " " + out_word
                 else:
                     in_text += out_word
                 x += 1
                 # This should be tweaked to match how beatles typically structure their songs
-                if out_word.lower() in ending_words and len(in_text.split()) >= n_words/3 and x >= 5: # When the sentence is reaching its end from n_words, start looking for an ending word
-                    # Potentially include line break instead for finishing lines
-                    #return in_text
+                if out_word.lower() in ending_words and x > q1: # After the line length exceeds the first quartile, start accepting ending words
                     in_text += "\n"
-                    x = 0
-                    print(len(in_text.split()))
-                #elif x >= n_words/2:
-                elif x >= 7: # This cap can be adjusted based on longest/average line length
+                    x = 0 # Reset line length
+                elif x >= q3: # If the line length hits the third quartile, insert line break
                         in_text += "\n"
-                        x = 0
-                #break
-    if in_text[-1] != "\n":
+                        x = 0 # Reset line length
+    if in_text[-1] != "\n": # If the last character of the section is not a line break, insert line break
         in_text += "\n"
     return in_text
+# %%
+# %%
+"""
+s = "\ntesting here"
+a = "testing\n here"
+print(bool(re.search("\ntesting", s)))
+"""
 # %%
 def create_song(format, specialized, i_len=5, b_len=5, c_len=10, v_len=20, o_len=5):
     title = unigram_get_words(data_title, 4)
     song = []
-    song.append("SONG NAME: " + title.upper() + "\n")
+    #song.append("SONG NAME: " + title.upper() + "\n")
     if specialized is True:
-        #intro = "[INTRO]\n" + get_sequence(model_intro[0], model_intro[1], model_intro[2]-1, unigram_get_words(data_lyrics, 2), i_len) # Parameters: model, tokenizer, max_length
-        #bridge = "[BRIDGE]\n" + get_sequence(model_bridge[0], model_bridge[1], model_bridge[2]-1, unigram_get_words(data_lyrics, 2), b_len)
-        #chorus = "[CHORUS]\n" + get_sequence(model_chorus[0], model_chorus[1], model_chorus[2]-1, unigram_get_words(data_lyrics, 2), c_len)
-        #outro = "[OUTRO]\n" + get_sequence(model_outro[0], model_outro[1], model_outro[2]-1, unigram_get_words(data_lyrics, 2), o_len)
+        intro = "[INTRO]\n" + get_sequence(model_intro[0], model_intro[1], model_intro[2]-1, unigram_get_words(data_lyrics, 2), i_len) # Parameters: model, tokenizer, max_length
+        bridge = "[BRIDGE]\n" + get_sequence(model_bridge[0], model_bridge[1], model_bridge[2]-1, unigram_get_words(data_lyrics, 2), b_len)
+        chorus = "[CHORUS]\n" + get_sequence(model_chorus[0], model_chorus[1], model_chorus[2]-1, unigram_get_words(data_lyrics, 2), c_len)
+        outro = "[OUTRO]\n" + get_sequence(model_outro[0], model_outro[1], model_outro[2]-1, unigram_get_words(data_lyrics, 2), o_len)
         pass
     else:
         intro = "[INTRO]\n" + get_sequence(model_lyrics[0], model_lyrics[1], model_lyrics[2]-1, unigram_get_words(data_lyrics, 2), i_len)
@@ -246,7 +254,7 @@ def print_song(song):
     for element in song:
         print(element)
 # %%
-song_specialized = create_song("V", specialized=True, c_len=15)
+song_specialized = create_song("IVCVC", specialized=True)
 #song_general = create_song("ICBOV", specialized=False, c_len=15)
 # %%
 print_song(song_specialized)
