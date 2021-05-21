@@ -163,10 +163,25 @@ def clean_lyrics(s):
     s = re.sub("[^a-zA-Z.,!?() ]", "", s)
     s = s.strip()
     return s
+
+def semi_clean_lyrics(s):
+    s = re.sub(r"\[.*?]", "", s)
+    #s = re.sub(r"\n", ". ", s)
+    #s = re.sub(r"[\.\s]{2,}", ". ", s)
+    s = re.sub(r"^\.", "", s)
+    s = re.sub(" \d+", "", s)
+    s = re.sub("[^a-zA-Z.,!?()\\n ]", "", s)
+    s = re.sub("[\n\n]{2,}", "\n", s)
+    #s = s.strip()
+    return s
+# %%
+df["lyrics_semi_cleaned"] = list(map(semi_clean_lyrics, df.lyrics))
+# %%
+df.lyrics_semi_clean[0]
 # %%
 df['lyrics_cleaned'] = list(map(clean_lyrics, df.lyrics))
 # %%
 df.to_csv("cleaned_dataset.csv")
 # %%
-df.lyrics_cleaned
+"".join(df.lyrics_semi_cleaned)
 # %%
