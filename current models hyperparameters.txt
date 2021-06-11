@@ -1,7 +1,0 @@
-model = Sequential() # A grouping of linear stacks into a keras model
-    model.add(Embedding(v_size, 10, input_length=max_length-1))  # Adds a list of tensors.
-    model.add(LSTM(50)) # Long short term layer with 50 units
-    model.add(Dense(v_size, activation='softmax')) # Regular densely connected NN layers with softmax
-    model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy']) # Using catagorical_crossentropy since it's technically a multinomial classificaiton problem, with Adam optimizer which is an efficient implementation of gradient descent
-    model.fit(X, y, epochs=200, verbose=2)
-    return model, tokenizer, max_length
