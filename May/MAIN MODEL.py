@@ -7,7 +7,6 @@ import sys
 !{sys.executable} -m pip install defaultdict
 nltk.download('punkt')
 import defaultdict
-
 """
 from sys import float_repr_style
 import pandas as pd
@@ -66,23 +65,54 @@ lyrics_joined_break = "".join(data_lyrics_break)
 lyrics_joined_break = re.sub("[\n\n]{2,}", "\n", lyrics_joined_break)
 
 sents_break = lyrics_joined_break.split('\n')
-avg_len = round(sum(len(x.split(" ")) for x in sents_break) / len(sents_break), 2)
+avg_len = round(sum(len(x.split(" ")) for x in sents_break) / len(sents_break), 2) # Average length of line (With outliers)
 length_list = [len(x.split(" ")) for x in sents_break]
 print("Average line length: " + str(avg_len))
 plt.boxplot(length_list)
 plt.show()
 # %%
-def reject_outliers(data, m=2):
+def reject_outliers(data, m=2): # Rejecting Outliers
     return data[abs(data - mean(data)) < m * std(data)]
 # %%
 length_arr = array(length_list)
 length_list = list(reject_outliers(length_arr))
-avg_len = round(sum(length_list) / len(length_list), 2)
+avg_len = round(sum(length_list) / len(length_list), 2) # Average length of line (without outliers)
 
 print("After removing outliers: " + str(avg_len))
 plt.boxplot(length_list)
 plt.show()
 plt.hist(length_list)
+plt.show()
+# %%
+# EDA
+eda_df = pd.read_csv("Cleaned.csv")
+# %%
+eda_df.columns
+# %%
+categories = [data_lyrics_break]
+def line_lengths(categories):
+
+lyrics_joined_break_verse = "".join(data_lyrics_break)
+lyrics_joined_break_verse = re.sub("[\n\n]{2,}", "\n", lyrics_joined_break)
+sents_break_verse = lyrics_joined_break.split('\n')
+
+length_arr = array(length_list)
+length_list = list(reject_outliers(length_arr))
+avg_len = round(sum(length_list) / len(length_list), 2) # Average length of line (without outliers)
+
+#%%
+len(sents_break_verse)
+sents_break_verse[5]
+
+
+
+# %%
+# EDA Plotting
+plt.boxplot(length_list)
+plt.title("Line length - All Categories")
+plt.show()
+plt.hist(length_list)
+plt.title("Line length - All Categories")
 plt.show()
 # %%
 q1 = quantile(length_arr, 0.25)
@@ -263,5 +293,4 @@ song_specialized = create_song("IVCVCBO", specialized=True)
 # %%
 print_song(song_specialized)
 # %%
-# NEXT: Add grid search, look up ways to perfect the model, check typical beatles characteristics such as verse length, line length, etc.
-# Can get error if two words similar in beginning
+
