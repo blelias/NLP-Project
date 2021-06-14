@@ -20,12 +20,12 @@ data_lyrics = get_data("lyrics_cleaned")
 data_lyrics_break = get_data("lyrics_semi_clean") # This series contains the lyrics w/ line break tags
 data_title = get_data("title")
 # %%
-# Rules based on EDA
-i_len=20 
-b_len=20 
-c_len=20 
-v_len=35 
-o_len=15
+# Rules based on third quantiles from EDA
+i_len=16 
+b_len=136 
+c_len=54
+v_len=94 
+o_len=21
 line_length = 5
 # %%
 # Unigram Model
@@ -96,7 +96,7 @@ def use_trigram(model, n_words):
                 x += 1
                 i += 1
                 break
-        if text[-2:] == [None, None] and x >= n_words*0.8:
+        if text[-2:] == [None, None] and x >= n_words-n_words*0.50:
             sentence_finished = True
         elif x >= n_words:
             sentence_finished = True
@@ -104,7 +104,7 @@ def use_trigram(model, n_words):
             #sentence_finished = True
     return (' '.join([t for t in text if t]).lower())
 # %%
-def create_song(format, data, specialized=True, i_len=20, b_len=20, c_len=20, v_len=35, o_len=15):
+def create_song(format, data, specialized=True, i_len=i_len, b_len=b_len, c_len=c_len, v_len=v_len, o_len=o_len):
     title = unigram_get_words(data_title, 4)
     song = []
     #song.append("SONG NAME: " + title.upper() + "\n")
@@ -124,9 +124,9 @@ def create_song(format, data, specialized=True, i_len=20, b_len=20, c_len=20, v_
             song.append(intro)
         elif tag == "V":
             if specialized is True:
-                verse = "[VERSE]\n" + use_trigram(create_trigram(data_verse),v_len)
+                verse = "[VERSE]\n" + use_trigram(create_trigram(data_verse),v_len/format.count("V"))
             else:
-                verse = "[VERSE]\n" + use_trigram(model,v_len)
+                verse = "[VERSE]\n" + use_trigram(model,v_len/format.count("V"))
             song.append(verse)
         elif tag == "B":
             song.append(bridge)
@@ -145,5 +145,5 @@ def print_song(song):
     for element in song[0]:
         print(element)
 # %%
-print_song(create_song("IVCVCO", data_intro, specialized=False))
+print_song(create_song("IVCVCO", data_intro, specialized=True))
 # %%
