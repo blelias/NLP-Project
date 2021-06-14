@@ -20,13 +20,20 @@ data_lyrics = get_data("lyrics_cleaned")
 data_lyrics_break = get_data("lyrics_semi_clean") # This series contains the lyrics w/ line break tags
 data_title = get_data("title")
 # %%
-# Rules based on third quantiles from EDA
-i_len=16 
-b_len=136 
-c_len=54
-v_len=94 
-o_len=21
-line_length = 5
+# Rules based on quantiles from EDA
+# Max word length of each section
+i_len=18 # fourth quantile
+b_len=136 # fourth quantile, Gets divided by number of verses
+c_len=54 # fourth quantile
+v_len=94 # fourth quantile
+o_len=22 # fourth quantile
+
+# Line lengths of each section (This is currently in the EDA)
+line_length_i = 5
+line_length_b = 5
+line_length_c = 5
+line_length_v = 5
+line_length_o = 5
 # %%
 # Unigram Model
 def unigram_get_words(data, length):
@@ -80,7 +87,7 @@ def create_trigram(data):
     return model_sample
 # %%
 # Use Trigram Model
-def use_trigram(model, n_words):
+def use_trigram(model, n_words, line_length):
     text = [None, None]
     sentence_finished = False
     x = 0
@@ -94,39 +101,45 @@ def use_trigram(model, n_words):
             if accumulator >= r:
                 text.append(word)
                 x += 1
-                i += 1
                 break
-        if text[-2:] == [None, None] and x >= n_words-n_words*0.50:
+        if text[-2:] == [None, None] and x >= n_words*0.50:
             sentence_finished = True
         elif x >= n_words:
             sentence_finished = True
         #elif len(text) > 10:
             #sentence_finished = True
-    return (' '.join([t for t in text if t]).lower())
+    text = [t for t in text if t]
+    for idx, word in enumerate(text):
+        i += 1
+        if i >= line_length:
+            text[idx] += "\n"
+            i = 0
+    out_text = ' '.join(text).lower()
+    return out_text
 # %%
 def create_song(format, data, specialized=True, i_len=i_len, b_len=b_len, c_len=c_len, v_len=v_len, o_len=o_len):
     title = unigram_get_words(data_title, 4)
     song = []
     #song.append("SONG NAME: " + title.upper() + "\n")
     if specialized is True:
-        intro = "[INTRO]\n" + use_trigram(create_trigram(data_intro),i_len) # Parameters: model, max_length
-        bridge = "[BRIDGE]\n" + use_trigram(create_trigram(data_bridge),b_len)
-        chorus = "[CHORUS]]\n" + use_trigram(create_trigram(data_chorus),c_len)
-        outro = "[OUTRO]\n" + use_trigram(create_trigram(data_outro),o_len)
+        intro = "[INTRO]\n" + use_trigram(create_trigram(data_intro),i_len, line_length_i) # Parameters: model, max_length
+        bridge = "[BRIDGE]\n" + use_trigram(create_trigram(data_bridge),b_len, line_length_b)
+        chorus = "[CHORUS]]\n" + use_trigram(create_trigram(data_chorus),c_len, line_length_c)
+        outro = "[OUTRO]\n" + use_trigram(create_trigram(data_outro),o_len, line_length_o)
     else:
         model = create_trigram(data_lyrics)
-        intro = "[INTRO]\n" + use_trigram(model,i_len) # Parameters: model, max_length
-        bridge = "[BRIDGE]\n" + use_trigram(model,b_len)
-        chorus = "[CHORUS]]\n" + use_trigram(model,c_len)
-        outro = "[OUTRO]\n" + use_trigram(model,o_len)
+        intro = "[INTRO]\n" + use_trigram(model,i_len, line_length_i) # Parameters: model, max_length
+        bridge = "[BRIDGE]\n" + use_trigram(model,b_len, line_length_b)
+        chorus = "[CHORUS]]\n" + use_trigram(model,c_len, line_length_c)
+        outro = "[OUTRO]\n" + use_trigram(model,o_len, line_length_o)
     for tag in format:
         if tag == "I":
             song.append(intro)
         elif tag == "V":
             if specialized is True:
-                verse = "[VERSE]\n" + use_trigram(create_trigram(data_verse),v_len/format.count("V"))
+                verse = "[VERSE]\n" + use_trigram(create_trigram(data_verse),v_len/format.count("V"), line_length_v)
             else:
-                verse = "[VERSE]\n" + use_trigram(model,v_len/format.count("V"))
+                verse = "[VERSE]\n" + use_trigram(model,v_len/format.count("V"), line_length_v)
             song.append(verse)
         elif tag == "B":
             song.append(bridge)
@@ -143,7 +156,9 @@ def create_song(format, data, specialized=True, i_len=i_len, b_len=b_len, c_len=
 def print_song(song):
     print("Title: " + str(song[1]).upper() + "\n")
     for element in song[0]:
-        print(element)
+        print(element + "\n")
 # %%
 print_song(create_song("IVCVCO", data_intro, specialized=True))
+# %%
+
 # %%
