@@ -134,6 +134,10 @@ for cat in cat_full:
     text = TextBlob(" ".join(cat))
     print(text.sentiment)
 # %%
+# Function for getting quantiles
+def get_quant(inp, quant):
+    return quantile((np.array(get_avg_length(inp))), quant)
+# %%
 # Box-Plot for each section word count and third quantile (NB: Lyrics is concatenated)
 plt.figure(figsize=(10,5))
 plt.suptitle("Section Word Count")
@@ -141,27 +145,42 @@ plt.figtext(1, 0.001, "Removed outliers 2 standard deviations away from the mean
 plt.subplot(2,3,1)
 plt.boxplot(reject_outliers(np.array(get_avg_length(intro))))
 plt.title("Intro")
-print(quantile(reject_outliers(np.array(get_avg_length(intro))), 0.75))
+q4_intro = get_quant(intro, 0.75)
+q1_intro = get_quant(intro, 0.25)
+iqr_intro = q4_intro - q1_intro
+print("INTRO: ", "Q4: ", q4_intro, " Q1: ", q1_intro, " IQR: ", iqr_intro)
 
 plt.subplot(2,3,2)
 plt.boxplot(reject_outliers(np.array(get_avg_length(verse))))
 plt.title("Verse")
-print(quantile(reject_outliers(np.array(get_avg_length(verse))), 0.75))
+q4_verse = get_quant(verse, 0.75)
+q1_verse = get_quant(verse, 0.25)
+iqr_verse = q4_verse - q1_verse
+print("Verse: ", "Q4: ", q4_verse, " Q1: ", q1_verse, " IQR: ", iqr_verse)
 
 plt.subplot(2,3,3)
 plt.boxplot(reject_outliers(np.array(get_avg_length(bridge))))
 plt.title("Bridge")
-print(quantile(reject_outliers(np.array(get_avg_length(bridge))), 0.75))
+q4_bridge = get_quant(bridge, 0.75)
+q1_bridge = get_quant(bridge, 0.25)
+iqr_bridge = q4_bridge - q1_bridge
+print("Bridge: ", "Q4: ", q4_bridge, " Q1: ", q1_bridge, " IQR: ", iqr_bridge)
 
 plt.subplot(2,3,4)
 plt.boxplot(reject_outliers(np.array(get_avg_length(chorus))))
 plt.title("Chorus")
-print(quantile(reject_outliers(np.array(get_avg_length(chorus))), 0.75))
+q4_chorus = get_quant(chorus, 0.75)
+q1_chorus = get_quant(chorus, 0.25)
+iqr_chorus = q4_chorus - q1_chorus
+print("Chorus: ", "Q4: ", q4_chorus, " Q1: ", q1_chorus, " IQR: ", iqr_chorus)
 
 plt.subplot(2,3,5)
 plt.boxplot(reject_outliers(np.array(get_avg_length(outro))))
 plt.title("Outro")
-print(quantile(reject_outliers(np.array(get_avg_length(outro))), 0.75))
+q4_outro = get_quant(outro, 0.75)
+q1_outro = get_quant(outro, 0.25)
+iqr_outro = q4_outro - q1_outro
+print("Outro: ", "Q4: ", q4_outro, " Q1: ", q1_outro, " IQR: ", iqr_outro)
 
 plt.subplot(2,3,6)
 plt.boxplot(reject_outliers(np.array(get_avg_length(lyrics_list))))
@@ -170,19 +189,26 @@ plt.tight_layout()
 plt.savefig("section_word_count")
 plt.show()
 # %%
-# Average Line Length
+# %%
+# Function for getting average line length and quantiles
 df_line = pd.read_csv("cleaned_dataset.csv")
 df_line = df_line.lyrics_semi_cleaned
 
-line_length = []
-for row in df_line:
-    line_length.append(row.split("\n"))
+def get_line_length(inp):
+    line_length = []
+    for row in inp:
+        line_length.append(row.split("\n"))
 
-sent_length = []
-for row in line_length:
-    for sent in row:
-        sent_length.append(len(sent.split(" ")))
+    sent_length = []
+    for row in line_length:
+        for sent in row:
+            sent_length.append(len(sent.split(" ")))
+    avg = average(reject_outliers(np.array(sent_length)))
+    q1 = np.quantile(sent_length, 0.25)
+    q4 = np.quantile(sent_length, 0.75)
+    iqr = q4-q1
 
-print(average(reject_outliers(np.array(sent_length))))
-print(average(sent_length))
+    return avg, q1, q4, iqr
+
+get_line_length(df_line)
 # %%
