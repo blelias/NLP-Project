@@ -189,26 +189,28 @@ plt.tight_layout()
 plt.savefig("section_word_count")
 plt.show()
 # %%
+df_line_breaks = pd.read_csv("last_dataset.csv")
 # %%
 # Function for getting average line length and quantiles
-df_line = pd.read_csv("cleaned_dataset.csv")
-df_line = df_line.lyrics_semi_cleaned
-
 def get_line_length(inp):
     line_length = []
     for row in inp:
-        line_length.append(row.split("\n"))
+        line_length.append(row.split(r"\n"))
 
     sent_length = []
     for row in line_length:
         for sent in row:
-            sent_length.append(len(sent.split(" ")))
+            sent_length.append(len(sent.split(r" ")))
     avg = average(reject_outliers(np.array(sent_length)))
     q1 = np.quantile(sent_length, 0.25)
     q4 = np.quantile(sent_length, 0.75)
     iqr = q4-q1
-
     return avg, q1, q4, iqr
-
-get_line_length(df_line)
+# %%
+intro_stats = get_line_length(df_line_breaks["intro_semi_cleaned"].dropna())
+verse_stats = get_line_length(df_line_breaks["verse_semi_cleaned"].dropna())
+bridge_stats = get_line_length(df_line_breaks["bridge_semi_cleaned"].dropna())
+chorus_stats = get_line_length(df_line_breaks["chorus_semi_cleaned"].dropna())
+outro_stats = get_line_length(df_line_breaks["outro_semi_cleaned"].dropna())
+lyrics_stats = get_line_length(df_line_breaks["lyrics_semi_cleaned"].dropna())
 # %%
