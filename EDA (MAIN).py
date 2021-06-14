@@ -1,5 +1,4 @@
 # %%
-from numpy.lib.function_base import average
 import pandas as pd
 from nltk.stem import PorterStemmer
 from nltk.stem import LancasterStemmer
@@ -16,18 +15,10 @@ from numpy import mean
 from numpy import quantile
 from numpy import std
 import re
-from textblob import TextBlob
-from nltk.tokenize import RegexpTokenizer
-from scipy import stats
-#nltk.download("vader_lexicon")
-# %%
-test = pd.read_csv("Cleanedtest.csv")
-# %%
-len(test["lyrics_cleaned"])
+nltk.download("vader_lexicon")
 # %%
 old_df = pd.read_csv("dataset.csv")
-#new_df = pd.read_csv("Cleaned.csv")
-new_df = pd.read_csv("Cleanedtest.csv")
+new_df = pd.read_csv("Cleaned.csv")
 new_df = new_df[0:310]
 # %%
 new_df["lyrics_cleaned"] = new_df["lyrics_cleaned"].dropna()
@@ -79,14 +70,6 @@ chorus = new_df["chorus_cleaned"].dropna()
 outro = new_df["outro_cleaned"].dropna()
 lyrics_list = new_df["lyrics_cleaned"].dropna()
 cat_full = [intro, verse, bridge, chorus, outro, lyrics_list]
-# %%
-new_df["verse"].isna().sum()
-new_df["chorus_cleaned"].isna().sum()
-# %%
-# Filtering Out Nulls
-filtered_lyrics = new_df[new_df['lyrics_cleaned'].notnull()]
-# %%
-len(lyrics_list)
 # %%
 # Removing Special Characters
 def remove_special(inp):
@@ -157,16 +140,6 @@ lower_fd = nltk.FreqDist([w.lower() for w in fd])
 sia = SentimentIntensityAnalyzer()
 sia.polarity_scores(" ".join(lyrics))
 # %%
-########## Sentiment Analysis - Subjectivity
-for cat in cat_full:
-    text = TextBlob(" ".join(cat))
-    print(text.sentiment)
-    print(len(cat))
-# %%
-
-# %%
-len(cat_full[-1])
-# %%
 # Intro
 #{'neg': 0.064, 'neu': 0.65, 'pos': 0.286, 'compound': 0.9996}
 # Verse
@@ -181,7 +154,7 @@ len(cat_full[-1])
 # {'neg': 0.081, 'neu': 0.711, 'pos': 0.209, 'compound': 1.0}
 # %% 
 # Rejecting Outliers
-def reject_outliers(data, m=2): 
+def reject_outliers(data, m=1): 
     return data[abs(data - mean(data)) < m * std(data)]
 
 #length_arr = array(length_list)
@@ -194,87 +167,17 @@ def get_boxplot(inp):
         my_list.append(len(word_tokenize(x)))
     return list(reject_outliers(array(my_list))), my_list
 # %%
-tokenizer = RegexpTokenizer(r'\w+')
-# %%
-# %%
-########## Get Average Length
-def get_avg_length(cat):
-    len_list = []
-    for row in cat:
-        len_list.append(len(tokenizer.tokenize(row)))
-    return len_list
-# %%
-reject_outliers(np.array(get_avg_length(intro)))
-# %%
-plt.boxplot(get_avg_length(lyrics_list))
-plt.show()
-plt.boxplot(reject_outliers(np.array((get_avg_length(lyrics_list)))))
-plt.show()
-# %%
-########## Box-Plot for each section (NB: Lyrics is concatenated)
-# Eirik 4
-plt.figure(figsize=(10,5))
-#plt.suptitle("Section Word Count")
-plt.figtext(1, 0.001, "Removed outliers 2 standard deviations away from the mean", wrap=True, horizontalalignment='right', fontsize=8)
-plt.subplot(2,3,1)
-plt.boxplot(reject_outliers(np.array(get_avg_length(intro))))
-plt.title("Intro")
-plt.subplot(2,3,2)
-plt.boxplot(reject_outliers(np.array(get_avg_length(verse))))
-plt.title("Verse")
-plt.subplot(2,3,3)
-plt.boxplot(reject_outliers(np.array(get_avg_length(bridge))))
-plt.title("Bridge")
-plt.subplot(2,3,4)
-plt.boxplot(reject_outliers(np.array(get_avg_length(chorus))))
-plt.title("Chorus")
-plt.subplot(2,3,5)
-plt.boxplot(reject_outliers(np.array(get_avg_length(outro))))
-plt.title("Outro")
-plt.subplot(2,3,6)
-plt.boxplot(reject_outliers(np.array(get_avg_length(lyrics_list))))
-plt.title("Full Lyrics")
-plt.tight_layout()
-plt.savefig("section_word_count")
-plt.show()
-# %%
-########## Average Line Length
-df_line = pd.read_csv("cleaned_dataset.csv")
-df_line = df_line.lyrics_semi_cleaned
-# %%
-########## Average amount of lines
-line_length = []
-for row in df_line:
-    line_length.append(row.split("\n"))
-
-sent_length = []
-for row in line_length:
-    for sent in row:
-        sent_length.append(len(sent.split(" ")))
-#split_break = " ".join(df_line).split("\n")
-#len(split_break)
-#split_break_tokenz = tokenizer.tokenize(split_break)
-# %%
-line_length[0]
-# Average sent length
-average(reject_outliers(np.array(sent_length)))
-average(sent_length)
-# %%
-#len(line_length[0])
-#total_avg = sum( map(len, line_length) ) / len(line_length)
-#total_avg
-# %%
-len(intro[233].split(" "))
-intro[1].split(" ")
-len(intro[1].split(" "))
-#len(filter(None, intro[1].split(" ")))
-filter(None, intro)
+########## Box-Plot for each section
+for cat in cat_full:
+    plt.figure()
+    plt.boxplot(get_boxplot(cat)[0])
+    plt.show
 # %%
 ########## Getting interquartile range for length of each section (but this is total, e.g. with all verses from a song)
-# Eirik 3
 intro_nonstop
 for cat in cat_full:
     q1 = quantile(get_boxplot(cat)[1], 0.25)
+    print(get_boxplot(cat)[1])
     q3 = quantile(get_boxplot(cat)[1], 0.75)
     #avg_len = float(round(avg_len))
     print("Q1 quantile: " + str(q1), "\nQ3 quantile: " + str(q3))
@@ -327,7 +230,6 @@ len(sents_break_verse)
 sents_break_verse[5]
 # %%
 # EDA Plotting
-# Eirik 1
 plt.boxplot(length_list)
 plt.title("Line length - All Categories")
 plt.show()
@@ -335,14 +237,9 @@ plt.hist(length_list)
 plt.title("Line length - All Categories")
 plt.show()
 # %%
-# Eirik 2
 q1 = quantile(length_arr, 0.25)
 q3 = quantile(length_arr, 0.75)
 avg_len = float(round(avg_len))
 print("Q1 quantile: " + str(q1), "\nQ3 quantile: " + str(q3) +
 "\nRounded average length: " + str(avg_len))
-# %%
-# Test
-# %%
-# Test
 # %%
